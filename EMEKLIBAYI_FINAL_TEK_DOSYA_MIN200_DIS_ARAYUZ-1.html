@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0b1728">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>EMEKLİBAYİ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;border-left:3px solid #ef4444;border-right:3px solid #ef4444;box-shadow:inset 0 0 0 1px rgba(239,68,68,.22);background:#07111f;color:#eef4ff;font-family:Arial,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}
+.header{height:70px;background:#0b1728;border-bottom:1px solid #1b3553;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:25px;letter-spacing:-1px}.logo span{color:#5da9ff}
+.header-right{display:flex;gap:10px;align-items:center}.balance{background:#10243b;border:1px solid #24476b;border-radius:12px;padding:9px 12px;color:#72b5ff;font-weight:800}
+.wrap{max-width:900px;margin:auto;padding:22px 15px 80px}
+.welcome{font-size:25px;font-weight:800;margin:5px 0 5px}.sub{color:#8fa6bf;margin-bottom:20px}
+.platforms{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.platform{background:#0d1b2d;border:1px solid #7f1d1d;border-radius:15px;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#d9e8f8;font-weight:700}
+.platform.active{border-color:#55a8ff;background:#102944;box-shadow:0 0 0 1px #55a8ff33}
+.platform svg{width:30px;height:30px;display:block}.platform:nth-child(2) svg{color:#E4405F}.platform:nth-child(3) svg{color:#fff}.platform:nth-child(4) svg{color:#ff0000}.platform:nth-child(5) svg{color:#fff}
+.search{width:100%;height:50px;background:#0b1829;border:1px solid #244565;border-radius:13px;color:white;padding:0 16px;outline:none;margin-bottom:14px}
+.filters{display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;padding:2px 0 8px;margin-bottom:14px;touch-action:pan-x;scrollbar-width:none}.filters::-webkit-scrollbar{display:none}.chip{white-space:nowrap;border:1px solid #294865;background:#0d1c2e;color:#bcd0e5;border-radius:999px;padding:9px 13px}.chip.active{background:#1877d2;border-color:#3294ef;color:white}
+.count{color:#8199b2;font-size:13px;margin:8px 0 10px}
+.service{background:#ffffff;border:1px solid #d8e0e8;border-radius:15px;margin-bottom:10px;overflow:hidden}
+.service-main{padding:15px;background:#ffffff}.service-top{display:flex;gap:9px;align-items:flex-start}.sid{background:#244a70;color:#cfe6ff;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:800;flex:none}
+.sname{font-weight:800;line-height:1.35;color:#111827}.meta{color:#374151;font-size:14px;margin-top:8px}
+.service-bottom{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:#f5f7fa;border-top:1px solid #d8e0e8}
+.price{color:#111827;font-weight:900;font-size:18px}.orderbtn{background:#1877d2;color:white;border:0;border-radius:9px;padding:9px 13px;font-weight:800}
+.empty{text-align:center;color:#8195ab;padding:35px}
+.drawer{display:none;position:fixed;inset:0;background:#0009;z-index:30}.drawer.open{display:block}.drawerbox{width:300px;max-width:85%;height:100%;background:#0b1728;padding:22px;border-right:1px solid #244565}.drawerbox button{width:100%;background:none;border:0;color:#dbe8f5;text-align:left;padding:15px;border-bottom:1px solid #17304a}
+.modal{display:none;position:fixed;inset:0;background:#0009;z-index:40;align-items:flex-end;justify-content:center}.modal.open{display:flex}.modalbox{background:#0b1728;border:1px solid #244565;width:100%;max-width:650px;border-radius:22px 22px 0 0;padding:20px}.modalbox h3{margin-top:0}.field{width:100%;background:#081423;border:1px solid #284865;color:white;border-radius:10px;padding:13px;margin:8px 0 12px}.primary{width:100%;background:#1877d2;color:#fff;border:0;border-radius:11px;padding:14px;font-weight:900}.close{float:right;background:none;border:0;color:#9eb2c8;font-size:25px}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.authbox{width:100%;max-width:430px;background:#0c1a2c;border:1px solid #244565;border-radius:20px;padding:25px}.authbox h1{margin-top:0}.authbox input{width:100%;margin:7px 0;padding:14px;border-radius:10px;background:#081423;border:1px solid #284865;color:#fff}.authbox button{width:100%;padding:14px;border:0;border-radius:10px;background:#1877d2;color:#fff;font-weight:800;margin-top:8px}.msg{color:#ff9f9f;margin-top:10px;font-size:13px}
+@media(max-width:600px){.platforms{grid-template-columns:repeat(3,1fr)}.welcome{font-size:22px}.balance{font-size:12px}.header{padding:0 12px}}
+
+.orders-list{max-height:70vh;overflow:auto}.support-card{background:#0d1b2d;border:1px solid #244565;border-radius:14px;padding:12px;margin:8px 0}.support-card b{color:#eef4ff}.support-card .small{color:#9eb2c8;font-size:12px;margin-top:5px}.order-card{background:#0d1b2d;border:1px solid #244565;border-radius:14px;padding:14px;margin:10px 0}.order-card .otop{display:flex;justify-content:space-between;gap:10px;align-items:center}.order-no{font-weight:900;color:#eaf3ff}.status{border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800;background:#243b55;color:#dcecff}.order-meta{color:#9eb2c8;font-size:13px;line-height:1.55;margin-top:9px;word-break:break-word}.order-link{color:#79baff;word-break:break-all}
+</style>
+
+<style id="outer-background-only">
+html, body {
+  background:
+    radial-gradient(circle at 8% 15%, rgba(59,130,246,.22) 0, transparent 24%),
+    radial-gradient(circle at 92% 12%, rgba(168,85,247,.20) 0, transparent 25%),
+    radial-gradient(circle at 12% 88%, rgba(14,165,233,.16) 0, transparent 24%),
+    radial-gradient(circle at 88% 86%, rgba(236,72,153,.14) 0, transparent 24%),
+    linear-gradient(135deg,#020617 0%,#0b1022 48%,#111827 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* The existing application/card stays visually unchanged. */
+@media (min-width: 900px) {
+  body {
+    padding-left: 22px !important;
+    padding-right: 22px !important;
+  }
+}
+
+/* Decorative outer glow only; does not alter inner controls/cards. */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 999px;
+  filter: blur(45px);
+  opacity: .38;
+}
+body::before {
+  width: 180px;
+  height: 180px;
+  top: 8vh;
+  left: 1vw;
+  background: #2563eb;
+}
+body::after {
+  width: 170px;
+  height: 170px;
+  right: 1vw;
+  bottom: 8vh;
+  background: #a855f7;
+}
+
+/* Keep all existing app content above the decorative background. */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+</style>
+
+</head>
+<body>
+
+<div id="auth" class="auth">
+  <div class="authbox">
+    <div class="logo">EMEKLİ<span>BAYİ</span></div>
+    <h1>Giriş Yap</h1>
+    <input id="email" type="email" placeholder="E-posta">
+    <input id="password" type="password" placeholder="Şifre">
+    <button onclick="login()">Giriş Yap</button>
+    <button onclick="register()" style="background:#163653">Kayıt Ol</button>
+    <button onclick="forgotPassword()" style="background:transparent;border:1px solid #244565;color:#9eb2c8">Şifremi Unuttum</button>
+    <div id="authmsg" class="msg"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+<header class="header">
+  <button onclick="openDrawer()" style="background:none;border:0;color:white;font-size:27px">☰</button>
+  <div class="logo">EMEKLİ<span>BAYİ</span></div>
+  <div class="header-right"><div class="balance" id="balance">₺0,00</div></div>
+</header>
+
+<main class="wrap">
+  <div class="welcome" id="welcome">Hoş geldin</div>
+  <div class="sub">Platform seç, kategoriyi seç ve istediğin servisi bul.</div>
+
+  <div class="platforms" id="platforms"></div>
+
+  <input id="search" class="search" placeholder="🔍 Servis ara..." oninput="renderServices()">
+  <div class="filters" id="filters"></div>
+  <div class="count" id="count"></div>
+  <div id="services"></div>
+</main>
+</div>
+
+<div class="drawer" id="drawer" onclick="if(event.target===this)closeDrawer()">
+ <div class="drawerbox">
+   <button onclick="closeDrawer()">✕ Kapat</button>
+   <button onclick="location.reload()">🏠 Yeni Sipariş</button>
+   <button onclick="openOrders()">📦 Siparişlerim</button>
+   <button onclick="openDeposit()">💳 Bakiye Yükle</button>
+   <button id="installBtn" onclick="installApp()" style="display:block">📲 Uygulamayı İndir</button>
+   <button onclick="openSupport()">🎫 Destek</button>
+   <button onclick="openWhatsAppSupport()">🟢 WhatsApp Destek</button>
+   <button onclick="logout()">🚪 Çıkış Yap</button>
+ </div>
+</div>
+
+<div class="modal" id="depositModal">
+ <div class="modalbox">
+   <button class="close" onclick="closeDeposit()">✕</button>
+   <h3>💳 Bakiye Yükle</h3>
+   <div class="meta">Havale/EFT yaptıktan sonra bilgileri gönder.</div>
+   <div style="background:#0b1b2d;padding:14px;border:1px solid #244565;border-radius:12px;margin:12px 0">
+     <div style="color:#9cb0c7;font-size:12px">Hesap Sahibi</div>
+     <div id="depositHolder" style="font-weight:800;margin-top:5px">Henüz tanımlanmadı</div>
+   </div>
+   <div style="background:#0b1b2d;padding:14px;border:1px solid #244565;border-radius:12px;margin:12px 0">
+     <div style="color:#9cb0c7;font-size:12px">IBAN</div>
+     <div id="depositIban" style="font-weight:800;margin-top:5px;word-break:break-all">Henüz tanımlanmadı</div>
+   </div>
+   <input id="depositAmount" class="field" type="number" min="1" step="0.01" placeholder="Yüklenecek tutar">
+   <div style="margin:8px 0 10px;padding:12px;border:1px solid #7f1d1d;border-radius:10px;background:#0d1b2d;color:#facc15;font-size:14px;line-height:1.4">
+⚠️ <b>Önemli:</b> Açıklama alanını <b>boş bırakınız</b>. Farklı bilgi girilmesi halinde ödeme doğrulaması gecikebilir veya talep işleme alınmayabilir.
+</div>
+<div style="font-size:13px;color:#facc15;margin:0 0 6px">Minimum bakiye yükleme: <b>₺200</b></div>
+   <textarea id="depositDescription" class="field" style="min-height:70px;resize:vertical" placeholder="Açıklama alanını boş bırakınız"></textarea>
+   <button class="primary" onclick="submitDeposit()">Bakiye Talebi Gönder</button>
+   <div id="depositmsg" class="msg"></div>
+ </div>
+</div>
+
+<div class="modal" id="installModal">
+ <div class="modalbox">
+  <h3>📲 EMEKLİBAYİ Uygulaması</h3>
+  <p>Uygulamayı telefonuna yükleyebilirsin.</p>
+  <button onclick="installApp()">Uygulamayı Yükle</button>
+  <button onclick="closeInstall()">Kapat</button>
+ </div>
+</div>
+
+<div class="modal" id="ordersModal">
+ <div class="modalbox">
+   <button class="close" onclick="closeOrders()">✕</button>
+   <h3>📦 Siparişlerim</h3>
+   <div id="ordersList" class="orders-list"><div class="meta">Yükleniyor...</div></div>
+ </div>
+</div>
+
+<div class="modal" id="supportModal">
+ <div class="modalbox">
+  <button class="close" onclick="closeSupport()">✕</button>
+  <h3>🎫 Destek</h3>
+  <div class="meta">Sorununu yaz. Talep cihazında kaydedilir ve tekrar açtığında görünür.</div>
+  <input id="supportSubject" class="field" placeholder="Konu">
+  <textarea id="supportMessage" class="field" style="min-height:130px;resize:vertical" placeholder="Mesajın"></textarea>
+  <button class="primary" onclick="sendSupport()">Destek Talebi Oluştur</button>
+  <a href="https://wa.me/6285187392727?text=Merhaba%20EMEKL%C4%B0BAY%C4%B0%20destek%20almak%20istiyorum." target="_blank" rel="noopener" class="primary" style="display:block;text-align:center;text-decoration:none;background:#16a34a;margin-top:10px">🟢 WhatsApp Destek Hattı</a>
+  <div id="supportmsg" class="msg"></div>
+  <div id="supportHistory" class="orders-list" style="margin-top:12px"></div>
+ </div>
+</div>
+
+<div class="modal" id="resetModal">
+ <div class="modalbox">
+   <button class="close" onclick="closeReset()">✕</button>
+   <h3>Şifre Yenile</h3>
+   <div class="meta">E-postadaki şifre yenileme bağlantısından geldin. Yeni şifreni belirle.</div>
+   <input id="newPassword" class="field" type="password" placeholder="Yeni şifre">
+   <input id="newPassword2" class="field" type="password" placeholder="Yeni şifre tekrar">
+   <button class="primary" style="margin-top:14px" onclick="updatePassword()">Şifreyi Güncelle</button>
+   <div id="resetmsg" class="msg"></div>
+ </div>
+</div>
+
+<div class="modal" id="orderModal">
+ <div class="modalbox">
+   <button class="close" onclick="closeOrder()">✕</button>
+   <h3 id="modalName"></h3>
+   <div id="modalMeta" class="meta"></div>
+   <input id="link" class="field" placeholder="Profil / gönderi linki">
+   <input id="qty" class="field" type="number" placeholder="Miktar" oninput="calcAmount()">
+   <div class="meta">Toplam: <b id="modalAmount">₺0,00</b></div>
+   <button class="primary" style="margin-top:14px" onclick="placeOrder()">Sipariş Oluştur</button>
+   <div id="ordermsg" class="msg"></div>
+ </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://iwnfgzswdqkqfixauqeg.supabase.co';
+const SUPABASE_KEY='sb_publishable_u80nvmjnC4SL_Qm_fXLUZg_h3shuQlS';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// Bakiye yükleme bilgileri — gerçek IBAN ve hesap sahibini buraya yaz.
+const DEPOSIT_IBAN='TR17 0001 0090 1021 0861 7050 01';
+const DEPOSIT_HOLDER='Yunus Polat';
+
+
+let allServices=[];
+let selectedPlatform='Tümü';
+let selectedCategory='Tümü';
+let selectedService=null;
+
+const platformData=[
+ ['Tümü','grid','Tümü'],
+ ['Instagram','instagram','Instagram'],
+ ['TikTok','tiktok','TikTok'],
+ ['YouTube','youtube','YouTube'],
+ ['Twitter/X','x','Twitter/X']
+];
+
+const platformIcons={
+ grid:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/></svg>',
+ instagram:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.2 2h9.6A5.2 5.2 0 0 1 22 7.2v9.6a5.2 5.2 0 0 1-5.2 5.2H7.2A5.2 5.2 0 0 1 2 16.8V7.2A5.2 5.2 0 0 1 7.2 2zm0 2A3.2 3.2 0 0 0 4 7.2v9.6A3.2 3.2 0 0 0 7.2 20h9.6a3.2 3.2 0 0 0 3.2-3.2V7.2A3.2 3.2 0 0 0 16.8 4H7.2zm4.8 3.3A4.7 4.7 0 1 1 12 16.7 4.7 4.7 0 0 1 12 7.3zm0 2A2.7 2.7 0 1 0 14.7 12 2.7 2.7 0 0 0 12 9.3zm5.1-3.2a1.1 1.1 0 1 1-1.1 1.1 1.1 1.1 0 0 1 1.1-1.1z"/></svg>',
+ tiktok:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.6 2h3.1c.3 2 1.4 3.5 3.3 4.5v3.2c-1.3-.1-2.5-.5-3.6-1.2v6.1c0 4.6-3 7.4-7.1 7.4-3.8 0-6.7-2.6-6.7-6.3 0-3.9 3.1-6.7 7.2-6.7.4 0 .8 0 1.2.1v3.5a4.3 4.3 0 0 0-1.2-.2c-1.9 0-3.5 1.3-3.5 3.1 0 1.7 1.4 2.9 3 2.9 1.9 0 3.8-1.2 3.8-4.1V2h.5z"/></svg>',
+ youtube:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.8V8.2l6.5 3.8-6.5 3.8z"/></svg>',
+ x:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3l-4.9-6.3L6.5 22H3.4l7.3-8.4L2.8 2h6.4l4.4 5.7L18.9 2zm-1.1 17.3h1.7L8.3 4.6H6.5l11.3 14.7z"/></svg>'
+};
+
+function money(v){return new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(Number(v)||0)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+function renderPlatforms(){
+ document.getElementById('platforms').innerHTML=platformData.map((p,i)=>`
+ <button type="button" class="platform ${p[0]===selectedPlatform?'active':''}" data-platform-index="${i}" onclick="selectPlatform('${p[0]}')">
+   ${platformIcons[p[1]]}
+   <span>${esc(p[2])}</span>
+ </button>`).join('');
+}
+function selectPlatform(p){
+ selectedPlatform=p; selectedCategory='Tümü'; renderPlatforms(); renderFilters(); renderServices();
+}
+function renderFilters(){
+ const cats=[...new Set(allServices.filter(s=>selectedPlatform==='Tümü'||s.platform===selectedPlatform).map(s=>s.category).filter(Boolean))];
+ const list=['Tümü',...cats];
+ document.getElementById('filters').innerHTML=list.map((c,i)=>`
+ <button type="button" class="chip ${c===selectedCategory?'active':''}" data-cat-index="${i}">${esc(c)}</button>`).join('');
+ document.querySelectorAll('#filters .chip').forEach((btn,i)=>{
+   btn.addEventListener('click',()=>{
+     const cats=[...new Set(allServices.filter(s=>selectedPlatform==='Tümü'||s.platform===selectedPlatform).map(s=>s.category).filter(Boolean))];
+     selectedCategory = i===0 ? 'Tümü' : cats[i-1];
+     renderFilters();
+     renderServices();
+   });
+ });
+}
+function selectCategory(c){selectedCategory=c;renderFilters();renderServices()}
+function renderServices(){
+ const q=document.getElementById('search').value.trim().toLowerCase();
+ let list=allServices.filter(s=>{
+   const p=selectedPlatform==='Tümü'||s.platform===selectedPlatform;
+   const c=selectedCategory==='Tümü'||s.category===selectedCategory;
+   const text=(s.name+' '+s.category+' '+s.id).toLowerCase();
+   return p&&c&&(!q||text.includes(q));
+ });
+ document.getElementById('count').textContent=list.length+' servis gösteriliyor';
+ document.getElementById('services').innerHTML=list.length?list.map(s=>`
+ <div class="service">
+   <div class="service-main">
+     <div class="service-top"><span class="sid">#${s.id}</span><div class="sname">${esc(s.name)}</div></div>
+     <div class="meta">${esc(s.platform)} · ${esc(s.category)} · Min ${s.min_quantity} · Max ${s.max_quantity}</div>
+   </div>
+   <div class="service-bottom">
+     <div class="price">1000 adet fiyatı: ${money(s.price_per_1000)}</div>
+     <button class="orderbtn" onclick="openOrder(${s.id})">Sipariş</button>
+   </div>
+ </div>`).join(''):'<div class="empty">Bu filtrede servis bulunamadı.</div>';
+}
+async function load(){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session){document.getElementById('auth').style.display='flex';return}
+ document.getElementById('auth').style.display='none';document.getElementById('app').style.display='block';
+ document.getElementById('welcome').textContent='Hoş geldin, '+(session.user.email?.split('@')[0]||'Kullanıcı');
+ const {data,error}=await sb.from('services').select('id,platform,category,name,description,price_per_1000,min_quantity,max_quantity,active').eq('active',true).order('platform').order('category').order('id');
+ if(error){alert('Servisler yüklenemedi: '+error.message);return}
+ allServices=data||[];
+ const {data:profile}=await sb.from('profiles').select('balance').eq('id',session.user.id).maybeSingle();
+ document.getElementById('balance').textContent=money(profile?.balance||0);
+ renderPlatforms();renderFilters();renderServices();
+}
+async function login(){
+ const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
+ const {error}=await sb.auth.signInWithPassword({email,password});
+ document.getElementById('authmsg').textContent=error?error.message:'';
+ if(!error)load();
+}
+async function register(){
+ const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
+ const {error}=await sb.auth.signUp({email,password});
+ document.getElementById('authmsg').textContent=error?'Hata: '+error.message:'Kayıt başarılı. Giriş yapabilirsin.';
+}
+async function forgotPassword(){
+ const email=document.getElementById('email').value.trim();
+ const msg=document.getElementById('authmsg');
+ if(!email){msg.textContent='Önce e-posta adresini yaz.';return}
+ msg.textContent='Gönderiliyor...';
+ const {error}=await sb.auth.resetPasswordForEmail(email,{
+   redirectTo:'https://emekl-bay.vercel.app/'
+ });
+ msg.textContent=error
+   ? 'Şifre yenileme gönderilemedi: '+error.message
+   : 'Şifre yenileme bağlantısı e-posta adresine gönderildi. Linke bastığında bu sayfada yeni şifreni belirleyebilirsin.';
+}
+async function updatePassword(){
+ const p1=document.getElementById('newPassword').value;
+ const p2=document.getElementById('newPassword2').value;
+ const msg=document.getElementById('resetmsg');
+ if(p1.length<6){msg.textContent='Şifre en az 6 karakter olmalı.';return}
+ if(p1!==p2){msg.textContent='Şifreler aynı değil.';return}
+ const {error}=await sb.auth.updateUser({password:p1});
+ msg.textContent=error ? 'Şifre güncellenemedi: '+error.message : 'Şifre başarıyla güncellendi.';
+ if(!error)setTimeout(()=>{closeReset();location.hash='';location.reload()},1200);
+}
+function closeReset(){document.getElementById('resetModal').classList.remove('open')}
+async function checkRecovery(){
+ const h=window.location.hash || '';
+ const isRecovery=h.includes('type=recovery');
+ if(!isRecovery)return;
+ document.getElementById('auth').style.display='none';
+ document.getElementById('app').style.display='none';
+ document.getElementById('resetModal').classList.add('open');
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session){
+   document.getElementById('resetmsg').textContent='Şifre yenileme bağlantısı geçersiz veya süresi dolmuş. Tekrar “Şifremi Unuttum” isteği gönder.';
+ }
+}
+async function logout(){await sb.auth.signOut();location.reload()}
+function openDrawer(){document.getElementById('drawer').classList.add('open')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
+function openDeposit(){
+ closeDrawer();
+ document.getElementById('depositHolder').textContent=DEPOSIT_HOLDER||'Henüz tanımlanmadı';
+ document.getElementById('depositIban').textContent=DEPOSIT_IBAN||'Henüz tanımlanmadı';
+ document.getElementById('depositAmount').value='';
+ document.getElementById('depositDescription').value='';
+ document.getElementById('depositmsg').textContent='';
+ document.getElementById('depositModal').classList.add('open');
+}
+function closeDeposit(){document.getElementById('depositModal').classList.remove('open')}
+async function submitDeposit(){
+ const amount=Number(document.getElementById('depositAmount').value);
+ const msg=document.getElementById('depositmsg');
+ if(!amount||amount<200){msg.textContent='Minimum bakiye yükleme tutarı ₺200 olmalıdır.';return}
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session){msg.textContent='Önce giriş yapmalısın.';return}
+ msg.textContent='Gönderiliyor...';
+ const {error}=await sb.rpc('create_deposit_request_secure',{p_amount:amount});
+ if(error){msg.textContent='Talep gönderilemedi: '+error.message;return}
+ msg.style.color='#86efac';
+ msg.textContent='Bakiye talebin gönderildi. Yönetici onayından sonra bakiyene eklenecek.';
+ setTimeout(closeDeposit,1800);
+}
+
+function openOrders(){
+ closeDrawer();
+ document.getElementById('ordersModal').classList.add('open');
+ loadOrders();
+}
+function closeOrders(){document.getElementById('ordersModal').classList.remove('open')}
+async function loadOrders(){
+ const box=document.getElementById('ordersList');
+ box.innerHTML='<div class="meta">Yükleniyor...</div>';
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session){box.innerHTML='<div class="meta">Önce giriş yapmalısın.</div>';return}
+ const {data:orders,error}=await sb.from('orders')
+   .select('id,order_number,service_id,link,quantity,amount,status,created_at')
+   .eq('user_id',session.user.id)
+   .order('created_at',{ascending:false});
+ if(error){box.innerHTML='<div class="meta">Siparişler yüklenemedi: '+escapeHtml(error.message)+'</div>';return}
+ if(!orders||!orders.length){box.innerHTML='<div class="meta">Henüz siparişin yok.</div>';return}
+ const ids=[...new Set(orders.map(o=>o.service_id).filter(Boolean))];
+ let names={};
+ if(ids.length){
+   const {data:services}=await sb.from('services').select('id,name,platform,category').in('id',ids);
+   (services||[]).forEach(x=>names[x.id]=x);
+ }
+ box.innerHTML=orders.map(o=>{
+   const sv=names[o.service_id];
+   const date=o.created_at?new Date(o.created_at).toLocaleString('tr-TR'):'';
+   return `<div class="order-card">
+     <div class="otop"><div class="order-no">#${escapeHtml(o.order_number||String(o.id))}</div><div class="status">${escapeHtml(o.status||'Bekliyor')}</div></div>
+     <div class="order-meta"><b>${escapeHtml(sv?.name||('Hizmet #'+o.service_id))}</b><br>
+     ${sv?escapeHtml(sv.platform)+' · '+escapeHtml(sv.category)+' · ':''}${Number(o.quantity||0).toLocaleString('tr-TR')} adet · <b>${money(o.amount||0)}</b><br>
+     ${date?escapeHtml(date)+'<br>':''}<span class="order-link">${escapeHtml(o.link||'')}</span></div>
+   </div>`;
+ }).join('');
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function openWhatsAppSupport(){
+ window.open('https://wa.me/6285187392727?text=Merhaba%20EMEKL%C4%B0BAY%C4%B0%20destek%20almak%20istiyorum.','_blank');
+}
+function openSupport(){
+ closeDrawer();
+ document.getElementById('supportSubject').value='';
+ document.getElementById('supportMessage').value='';
+ document.getElementById('supportmsg').textContent='';
+ renderSupportHistory();
+ document.getElementById('supportModal').classList.add('open');
+}
+function closeSupport(){document.getElementById('supportModal').classList.remove('open')}
+function supportKey(){return 'emeklibayi_support_'+(sb.auth.getUser? 'v1':'v1')}
+function renderSupportHistory(){
+ const box=document.getElementById('supportHistory');
+ try{
+  const arr=JSON.parse(localStorage.getItem('emeklibayi_support_tickets')||'[]');
+  box.innerHTML=arr.length?arr.slice().reverse().map(x=>`<div class="support-card"><b>${escapeHtml(x.subject)}</b><div class="small">${escapeHtml(x.date)} · ${escapeHtml(x.status)}</div><div style="margin-top:7px">${escapeHtml(x.message)}</div></div>`).join(''):'<div class="meta">Henüz destek talebi yok.</div>';
+ }catch(e){box.innerHTML=''}
+}
+function sendSupport(){
+ const subject=document.getElementById('supportSubject').value.trim();
+ const message=document.getElementById('supportMessage').value.trim();
+ const msg=document.getElementById('supportmsg');
+ if(!subject||!message){msg.textContent='Konu ve mesajı doldur.';return}
+ const arr=JSON.parse(localStorage.getItem('emeklibayi_support_tickets')||'[]');
+ arr.push({subject,message,status:'Açık',date:new Date().toLocaleString('tr-TR')});
+ localStorage.setItem('emeklibayi_support_tickets',JSON.stringify(arr));
+ msg.style.color='#86efac';msg.textContent='Destek talebin oluşturuldu.';
+ document.getElementById('supportSubject').value='';document.getElementById('supportMessage').value='';renderSupportHistory();
+}
+function openOrder(id){
+ selectedService=allServices.find(x=>x.id===id);if(!selectedService)return;
+ document.getElementById('modalName').textContent=selectedService.name;
+ document.getElementById('modalMeta').textContent=`${selectedService.platform} · ${selectedService.category} · Min ${selectedService.min_quantity} / Max ${selectedService.max_quantity}`;
+ document.getElementById('qty').value=selectedService.min_quantity;
+ document.getElementById('link').value='';document.getElementById('ordermsg').textContent='';
+ calcAmount();document.getElementById('orderModal').classList.add('open');
+}
+function closeOrder(){document.getElementById('orderModal').classList.remove('open')}
+function calcAmount(){if(!selectedService)return;let q=Number(document.getElementById('qty').value||0);document.getElementById('modalAmount').textContent=money(selectedService.price_per_1000*q/1000)}
+async function placeOrder(){
+ if(!selectedService)return;
+ const link=document.getElementById('link').value.trim(),q=Number(document.getElementById('qty').value);
+ const amount=Number((selectedService.price_per_1000*q/1000).toFixed(2));
+ if(!link){document.getElementById('ordermsg').textContent='Link gir.';return}
+ if(q<selectedService.min_quantity||q>selectedService.max_quantity){document.getElementById('ordermsg').textContent='Miktar aralığı hatalı.';return}
+ const orderNo='EMK'+Date.now().toString().slice(-9);
+ const {error}=await sb.rpc('create_order_secure',{p_order_number:orderNo,p_service_id:selectedService.id,p_link:link,p_quantity:q,p_amount:amount});
+ document.getElementById('ordermsg').textContent=error?error.message:'Sipariş oluşturuldu: '+orderNo;
+ if(!error)setTimeout(()=>{closeOrder();load()},800);
+}
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+ e.preventDefault(); deferredInstallPrompt=e;
+ const b=document.getElementById('installBtn'); if(b)b.style.display='block';
+});
+async function installApp(){
+ if(deferredInstallPrompt){
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+ }else{
+  document.getElementById('installModal').classList.add('open');
+ }
+}
+function closeInstall(){document.getElementById('installModal').classList.remove('open')}
+window.addEventListener('appinstalled',()=>{
+ deferredInstallPrompt=null;
+ const b=document.getElementById('installBtn'); if(b)b.style.display='none';
+});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+
+checkRecovery();
+load();
+</script>
+
+<style>
+#helperBot{position:fixed;right:16px;bottom:18px;z-index:9999;font-family:Arial,sans-serif}
+#helperBubble{width:54px;height:54px;border-radius:50%;border:2px solid #ef4444;background:#101827;
+display:flex;align-items:center;justify-content:center;font-size:27px;box-shadow:0 6px 22px rgba(0,0,0,.45);cursor:pointer}
+#helperPanel{display:none;width:min(320px,calc(100vw - 32px));margin-bottom:10px;background:#0b1728;
+border:1px solid #ef4444;border-radius:16px;box-shadow:0 12px 35px rgba(0,0,0,.55);overflow:hidden}
+#helperPanel.open{display:block}
+#helperHead{padding:13px 15px;background:#111d31;border-bottom:1px solid #7f1d1d;display:flex;align-items:center;gap:10px}
+#helperAvatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ef4444;color:white;font-size:21px}
+#helperBody{padding:13px}
+#helperMsg{font-size:14px;line-height:1.45;color:#e8eef8;margin-bottom:11px}
+.helperBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.helperBtns button{border:1px solid #7f1d1d;background:#13233a;color:#fff;border-radius:10px;padding:10px 8px;font-size:13px;cursor:pointer}
+#helperAnswer{display:none;margin-top:10px;padding:10px;border-radius:10px;background:#101f34;border-left:3px solid #ef4444;color:#dbeafe;font-size:13px;line-height:1.45}
+</style>
+
+<div id="helperBot">
+  <div id="helperPanel">
+    <div id="helperHead">
+      <div id="helperAvatar">👩‍💻</div>
+      <div>
+        <div style="font-weight:800;color:#fff">EMEKLİBAYİ Asistan</div>
+        <div style="font-size:11px;color:#9fb0c7">Yardım için buradayım</div>
+      </div>
+    </div>
+    <div id="helperBody">
+      <div id="helperMsg">Merhaba 👋 Paneli kullanırken takıldığın yerde yardımcı olabilirim. Ne yapmak istiyorsun?</div>
+      <div class="helperBtns">
+        <button onclick="helperAnswer('balance')">💳 Bakiye yükle</button>
+        <button onclick="helperAnswer('order')">🛒 Sipariş ver</button>
+        <button onclick="helperAnswer('orders')">📋 Siparişlerim</button>
+        <button onclick="helperAnswer('support')">💬 Destek</button>
+      </div>
+      <div id="helperAnswer"></div>
+    </div>
+  </div>
+  <div id="helperBubble" onclick="toggleHelper()">👩‍💻</div>
+</div>
+
+<script>
+function toggleHelper(){
+  const p=document.getElementById('helperPanel');
+  p.classList.toggle('open');
+}
+function helperAnswer(type){
+  const a=document.getElementById('helperAnswer');
+  const m={
+    balance:'Bakiye yüklemek için menüden “Bakiye Yükle” bölümünü aç. IBAN bilgilerini kontrol et, tutarı gir ve talebi gönder. Açıklama alanını boş bırak.',
+    order:'Sipariş vermek için platformu ve hizmeti seç, bağlantıyı gir, miktarı yaz ve siparişi oluştur. Bakiye yeterli olmalı.',
+    orders:'“Siparişlerim” bölümünden verdiğin siparişleri, miktarları ve durumlarını görebilirsin.',
+    support:'Sorun yaşarsan “Destek” bölümünden destek talebi oluşturabilir veya WhatsApp Destek butonunu kullanabilirsin.'
+  };
+  a.textContent=m[type]||'Nasıl yardımcı olabilirim?';
+  a.style.display='block';
+}
+</script>
+
+</body>
+</html>
