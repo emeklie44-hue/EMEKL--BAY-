@@ -1,5 +1,5 @@
 {
-  "name": "EMEKLİBAYİ Admin",
+  "name": "EMEKLİBAYİ Admin","id": "/admin-app",
   "short_name": "EMEKLİBAYİ Admin",
   "start_url": "./admin.html",
   "scope": "./",
