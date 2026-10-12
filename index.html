@@ -42,6 +42,7 @@ button,input,select{font:inherit}button{cursor:pointer}
     <input id="password" type="password" placeholder="Şifre">
     <button onclick="login()">Giriş Yap</button>
     <button onclick="register()" style="background:#163653">Kayıt Ol</button>
+    <button onclick="forgotPassword()" style="background:transparent;border:1px solid #244565;color:#9eb2c8">Şifremi Unuttum</button>
     <div id="authmsg" class="msg"></div>
   </div>
 </div>
@@ -74,6 +75,18 @@ button,input,select{font:inherit}button{cursor:pointer}
    <button onclick="alert('Bakiye yükleme bölümü sonraki adımda bağlanacak.')">💳 Bakiye Yükle</button>
    <button onclick="alert('Destek bölümü sonraki adımda bağlanacak.')">🎫 Destek</button>
    <button onclick="logout()">🚪 Çıkış Yap</button>
+ </div>
+</div>
+
+<div class="modal" id="resetModal">
+ <div class="modalbox">
+   <button class="close" onclick="closeReset()">✕</button>
+   <h3>Şifre Yenile</h3>
+   <div class="meta">Yeni şifreni belirle.</div>
+   <input id="newPassword" class="field" type="password" placeholder="Yeni şifre">
+   <input id="newPassword2" class="field" type="password" placeholder="Yeni şifre tekrar">
+   <button class="primary" style="margin-top:14px" onclick="updatePassword()">Şifreyi Güncelle</button>
+   <div id="resetmsg" class="msg"></div>
  </div>
 </div>
 
@@ -188,6 +201,30 @@ async function register(){
  const {error}=await sb.auth.signUp({email,password});
  document.getElementById('authmsg').textContent=error?'Hata: '+error.message:'Kayıt başarılı. Giriş yapabilirsin.';
 }
+async function forgotPassword(){
+ const email=document.getElementById('email').value.trim();
+ if(!email){document.getElementById('authmsg').textContent='Önce e-posta adresini yaz.';return}
+ const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+ document.getElementById('authmsg').textContent=error?'Hata: '+error.message:'Şifre yenileme bağlantısı e-posta adresine gönderildi.';
+}
+async function updatePassword(){
+ const p1=document.getElementById('newPassword').value;
+ const p2=document.getElementById('newPassword2').value;
+ if(p1.length<6){document.getElementById('resetmsg').textContent='Şifre en az 6 karakter olmalı.';return}
+ if(p1!==p2){document.getElementById('resetmsg').textContent='Şifreler aynı değil.';return}
+ const {error}=await sb.auth.updateUser({password:p1});
+ document.getElementById('resetmsg').textContent=error?error.message:'Şifre güncellendi. Giriş yapabilirsin.';
+ if(!error)setTimeout(()=>{closeReset();location.hash='';load()},900);
+}
+function closeReset(){document.getElementById('resetModal').classList.remove('open')}
+function checkRecovery(){
+ const h=window.location.hash;
+ if(h.includes('type=recovery')){
+   document.getElementById('auth').style.display='none';
+   document.getElementById('app').style.display='none';
+   document.getElementById('resetModal').classList.add('open');
+ }
+}
 async function logout(){await sb.auth.signOut();location.reload()}
 function openDrawer(){document.getElementById('drawer').classList.add('open')}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
@@ -212,6 +249,7 @@ async function placeOrder(){
  document.getElementById('ordermsg').textContent=error?error.message:'Sipariş oluşturuldu: '+orderNo;
  if(!error)setTimeout(()=>{closeOrder();load()},800);
 }
+checkRecovery();
 load();
 </script>
 </body>
