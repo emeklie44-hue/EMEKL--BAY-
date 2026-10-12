@@ -71,13 +71,49 @@ button,input,select{font:inherit}button{cursor:pointer}
  <div class="drawerbox">
    <button onclick="closeDrawer()">✕ Kapat</button>
    <button onclick="location.reload()">🏠 Yeni Sipariş</button>
-   <button onclick="alert('Siparişler bölümü sonraki adımda bağlanacak.')">📦 Siparişlerim</button>
-   <button onclick="alert('Bakiye yükleme bölümü sonraki adımda bağlanacak.')">💳 Bakiye Yükle</button>
+   <button onclick="openDeposit()">💳 Bakiye Yükle</button>
+   
    <button onclick="alert('Destek bölümü sonraki adımda bağlanacak.')">🎫 Destek</button>
    <button onclick="logout()">🚪 Çıkış Yap</button>
  </div>
 </div>
+<div id="depositModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#111827;color:white;width:100%;max-width:430px;border-radius:18px;padding:20px">
+    <h2 style="margin-top:0">💳 Bakiye Yükle</h2>
 
+    <div style="background:#0b1220;padding:14px;border-radius:12px;margin:10px 0">
+      <small style="color:#9ca3af">Hesap Sahibi</small>
+      <div style="font-weight:bold;margin-top:5px">Yunus Polat</div>
+    </div>
+
+    <div style="background:#0b1220;padding:14px;border-radius:12px;margin:10px 0">
+      <small style="color:#9ca3af">IBAN</small>
+      <div style="font-weight:bold;margin-top:5px;word-break:break-all">TR17 0001 0090 1021 0861 7050 01</div>
+    </div>
+
+    <div style="background:#0b1220;padding:14px;border-radius:12px;margin:10px 0">
+      <small style="color:#9ca3af">Açıklama</small>
+      <div style="font-weight:bold;margin-top:5px">Boş bırakınız</div>
+    </div>
+
+    <p style="font-size:13px;color:#cbd5e1">
+      Havale/EFT yaptıktan sonra dekontunuzu göndererek bakiye yükleme talebi oluşturabilirsiniz.
+    </p>
+
+    <button onclick="closeDeposit()" style="width:100%;padding:12px;border:0;border-radius:10px;background:#1877d2;color:white;font-weight:bold">
+      Kapat
+    </button>
+  </div>
+</div>
+
+<script>
+function openDeposit(){
+  document.getElementById('depositModal').style.display='flex';
+}
+function closeDeposit(){
+  document.getElementById('depositModal').style.display='none';
+}
+</script>
 <div class="modal" id="resetModal">
  <div class="modalbox">
    <button class="close" onclick="closeReset()">✕</button>
